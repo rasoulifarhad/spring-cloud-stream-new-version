@@ -1,0 +1,50 @@
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+spring:
+  application:
+    name: person-service
+  kafka:
+    bootstrap-servers:
+      - localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      group-id: person-service-group
+  cloud:
+    function:
+      definition: personConsumer
+    stream:
+      defaultBinder: kafka
+      source: personSource
+      bindings:
+        personSource-out-0:
+          destination: person-topic
+          content-type: application/json
+        personConsumer-in-0:
+          destination: person-topic
+          content-type: application/json
+          group: person-service-group
+          consumer:
+            concurrency: 1
+            autoStartup: true
+            partitioned: false
+            maxAttempts: 3
+            useNativeDecoding: false
+            autoCommitOffset: true
+          producer:
+            autoStartup: true
+            partitionCount: 1
+            useNativeEncoding: false
+            errorChannelEnabled: false
+      kafka: 
+        binder: 
+          brokers: localhost:9092
+          autoCreateTopics: true
+          replicationFactor: 1
+        bindings:
+          personConsumer-in-0:
+            startOffset: earliest
+          
